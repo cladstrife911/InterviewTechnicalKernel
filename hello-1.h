@@ -5,7 +5,7 @@
 
 #include <linux/ioctl.h>
 
-#define MAJOR_VERSION 42
+#define MAJOR_NUM 100
 
 /* set the message of the device driver*/
 #define IOCTL_SET_MSG _IOR(MAJOR_NUM, 0, char*)

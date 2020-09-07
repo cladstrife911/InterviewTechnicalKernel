@@ -42,13 +42,11 @@ int init_module(void)
 	ret_val = module_register_chrdev(MAJOR_NUM, DEVICE_NAME, &Fops);
 	if(ret_val < 0){
 		printk("failed with %d\n'=", ret_val);
+	}
 
 	printk("To talk to the device you can use:\n");
 	printk("mknod %s c %d 0\n", DEVICE_FILE_NAME, MAJOR_NUM);
 
-	/* 
-	 * A non 0 return means init_module failed; module can't be loaded. 
-	 */
 	return 0;
 }
 
@@ -192,7 +190,7 @@ int device_ioctl(struct inode *inode, struct file *file, unsigned int ioctl_num,
 			break;
 
 			default:
-				return -1
+				return -1;
 			break;
 		}
 	}
