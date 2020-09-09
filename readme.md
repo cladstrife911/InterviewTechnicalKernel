@@ -21,3 +21,13 @@ From src folder, build and run the test application with:
 
 #Environment
 Tested on Ubuntu 20.04
+
+
+#references
+- https://embetronicx.com/tutorials/linux/device-drivers/ioctl-tutorial-in-linux/
+
+Netfilter:
+- https://medium.com/bugbountywriteup/linux-kernel-communication-part-1-netfilter-hooks-15c07a5a5c4e
+
+IOCTL:
+- https://tldp.org/LDP/lkmpg/2.4/html/x856.html
