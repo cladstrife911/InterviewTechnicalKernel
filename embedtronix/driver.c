@@ -20,26 +20,7 @@
 #define WR_VALUE _IOW('a','a',int32_t*)
 #define RD_VALUE _IOR('a','b',int32_t*)
  
-#define DEVICE_NAME "ext_dev"
-
-/******************* LOCAL VARIABLES ***************************/ 
-dev_t dev = 0;
-static struct class *dev_class;
-static struct cdev etx_cdev;
-static struct nf_hook_ops *LOC_nfho = NULL;
-static int LOC_icmp_counter = 0;
-/*TRUE when a user has already opened the device file*/
-static bool LOC_bAlreadyOpened = FALSE;
-
-static struct file_operations LOC_fops =
-{
-        .owner          = THIS_MODULE,
-        .read           = etx_read,
-        .write          = etx_write,
-        .open           = etx_open,
-        .unlocked_ioctl = etx_ioctl,
-        .release        = etx_release,
-};
+#define DEVICE_NAME ("ext_dev")
 
 /******************* LOCAL FUNCTIONS PROTOTYPES ***************************/ 
 static int __init etx_driver_init(void);
@@ -50,6 +31,24 @@ static ssize_t etx_read(struct file *filp, char __user *buf, size_t len,loff_t *
 static ssize_t etx_write(struct file *filp, const char *buf, size_t len, loff_t * off);
 static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
  
+/******************* LOCAL VARIABLES ***************************/ 
+dev_t dev = 0;
+static struct class *dev_class;
+static struct cdev etx_cdev;
+static struct nf_hook_ops *LOC_nfho = NULL;
+static int LOC_icmp_counter = 0;
+/*true when a user has already opened the device file*/
+static bool LOC_bAlreadyOpened = false;
+
+static struct file_operations LOC_fops =
+{
+        .owner          = THIS_MODULE,
+        .read           = etx_read,
+        .write          = etx_write,
+        .open           = etx_open,
+        .unlocked_ioctl = etx_ioctl,
+        .release        = etx_release,
+};
 
 /******************* LOCAL FUNCTIONS DEFINITIONS ***************************/ 
 
@@ -96,7 +95,7 @@ static int etx_open(struct inode *inode, struct file *file)
 {
     if(!LOC_bAlreadyOpened){
         printk(KERN_INFO "Device File Opened...!!!\n");
-        LOC_bAlreadyOpened = TRUE;
+        LOC_bAlreadyOpened = true;
         return 0;
     }else{
         return -1;
@@ -107,7 +106,7 @@ static int etx_release(struct inode *inode, struct file *file)
 {
     if(LOC_bAlreadyOpened){
         printk(KERN_INFO "Device File Closed...!!!\n");
-        LOC_bAlreadyOpened = FALSE;
+        LOC_bAlreadyOpened = false;
         return 0;
     }else{
         return -1;
@@ -148,7 +147,7 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 static int __init etx_driver_init(void)
 {
     /*Allocating Major number*/
-    if((alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME) <0){
+    if((alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME)) <0){
             printk(KERN_INFO "Cannot allocate major number\n");
             return -1;
     }

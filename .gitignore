@@ -7,3 +7,6 @@
 *.d
 obj
 bin
+/*/*.order
+*/test_app
+
