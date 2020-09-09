@@ -20,21 +20,21 @@
 #define WR_VALUE _IOW('a','a',int32_t*)
 #define RD_VALUE _IOR('a','b',int32_t*)
  
-#define DEVICE_NAME ("ext_dev")
+#define DEVICE_NAME "my_dev"
 
 /******************* LOCAL FUNCTIONS PROTOTYPES ***************************/ 
-static int __init etx_driver_init(void);
-static void __exit etx_driver_exit(void);
-static int etx_open(struct inode *inode, struct file *file);
-static int etx_release(struct inode *inode, struct file *file);
-static ssize_t etx_read(struct file *filp, char __user *buf, size_t len,loff_t * off);
-static ssize_t etx_write(struct file *filp, const char *buf, size_t len, loff_t * off);
-static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
+static int __init my_driver_init(void);
+static void __exit my_driver_exit(void);
+static int my_open(struct inode *inode, struct file *file);
+static int my_release(struct inode *inode, struct file *file);
+static ssize_t my_read(struct file *filp, char __user *buf, size_t len,loff_t * off);
+static ssize_t my_write(struct file *filp, const char *buf, size_t len, loff_t * off);
+static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg);
  
 /******************* LOCAL VARIABLES ***************************/ 
 dev_t dev = 0;
-static struct class *dev_class;
-static struct cdev etx_cdev;
+static struct class *LOC_my_dev_class;
+static struct cdev LOC_my_cdev;
 static struct nf_hook_ops *LOC_nfho = NULL;
 static int LOC_icmp_counter = 0;
 /*true when a user has already opened the device file*/
@@ -43,11 +43,11 @@ static bool LOC_bAlreadyOpened = false;
 static struct file_operations LOC_fops =
 {
         .owner          = THIS_MODULE,
-        .read           = etx_read,
-        .write          = etx_write,
-        .open           = etx_open,
-        .unlocked_ioctl = etx_ioctl,
-        .release        = etx_release,
+        .read           = my_read,
+        .write          = my_write,
+        .open           = my_open,
+        .unlocked_ioctl = my_ioctl,
+        .release        = my_release,
 };
 
 /******************* LOCAL FUNCTIONS DEFINITIONS ***************************/ 
@@ -64,6 +64,7 @@ static unsigned int hfunc(void *priv, struct sk_buff *skb, const struct nf_hook_
 	iph = ip_hdr(skb);
 	if (iph->protocol == IPPROTO_ICMP) {
     		icmph = icmp_hdr(skb);
+            /* Just increment the icmp counter that will be send through ioctl*/
     		LOC_icmp_counter++;
     		printk(KERN_INFO "ICMP packet intercepted: %d!!\n", LOC_icmp_counter);
 	}
@@ -91,8 +92,10 @@ static void release_netfilter(void)
 	nf_unregister_net_hook(&init_net, LOC_nfho);
 }
  
-static int etx_open(struct inode *inode, struct file *file)
+static int my_open(struct inode *inode, struct file *file)
 {
+    /*Don't allow another user process to open the file
+    * if an user has already opened it */
     if(!LOC_bAlreadyOpened){
         printk(KERN_INFO "Device File Opened...!!!\n");
         LOC_bAlreadyOpened = true;
@@ -102,7 +105,7 @@ static int etx_open(struct inode *inode, struct file *file)
     }
 }
  
-static int etx_release(struct inode *inode, struct file *file)
+static int my_release(struct inode *inode, struct file *file)
 {
     if(LOC_bAlreadyOpened){
         printk(KERN_INFO "Device File Closed...!!!\n");
@@ -113,18 +116,18 @@ static int etx_release(struct inode *inode, struct file *file)
     }
 }
  
-static ssize_t etx_read(struct file *filp, char __user *buf, size_t len, loff_t *off)
+static ssize_t my_read(struct file *filp, char __user *buf, size_t len, loff_t *off)
 {
         printk(KERN_INFO "Read Function\n");
         return 0;
 }
-static ssize_t etx_write(struct file *filp, const char __user *buf, size_t len, loff_t *off)
+static ssize_t my_write(struct file *filp, const char __user *buf, size_t len, loff_t *off)
 {
         printk(KERN_INFO "Write function\n");
         return 0;
 }
  
-static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long my_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 {
     int32_t value = 0;
     switch(cmd) {
@@ -144,7 +147,7 @@ static long etx_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 /**
 * \brief this function is called when this Kernel driver is created with insmod
 */
-static int __init etx_driver_init(void)
+static int __init my_driver_init(void)
 {
     /*Allocating Major number*/
     if((alloc_chrdev_region(&dev, 0, 1, DEVICE_NAME)) <0){
@@ -154,22 +157,22 @@ static int __init etx_driver_init(void)
     printk(KERN_INFO "Major = %d Minor = %d \n",MAJOR(dev), MINOR(dev));
 
     /*Creating char dev structure*/
-    cdev_init(&etx_cdev,&LOC_fops);
+    cdev_init(&LOC_my_cdev,&LOC_fops);
 
     /*Adding character device to the system*/
-    if((cdev_add(&etx_cdev,dev,1)) < 0){
+    if((cdev_add(&LOC_my_cdev,dev,1)) < 0){
         printk(KERN_INFO "Cannot add the device to the system\n");
         goto r_class;
     }
 
     /*Creating struct class*/
-    if((dev_class = class_create(THIS_MODULE,"etx_class")) == NULL){
+    if((LOC_my_dev_class = class_create(THIS_MODULE,"my_class")) == NULL){
         printk(KERN_INFO "Cannot create the struct class\n");
         goto r_class;
     }
 
     /*Creating device*/
-    if((device_create(dev_class,NULL,dev,NULL,"etx_device")) == NULL){
+    if((device_create(LOC_my_dev_class,NULL,dev,NULL,"my_device")) == NULL){
         printk(KERN_INFO "Cannot create the Device 1\n");
         goto r_device;
     }
@@ -180,7 +183,7 @@ static int __init etx_driver_init(void)
     return 0;
  
 r_device:
-        class_destroy(dev_class);
+        class_destroy(LOC_my_dev_class);
 r_class:
         unregister_chrdev_region(dev,1);
         return -1;
@@ -189,18 +192,21 @@ r_class:
 /**
 * \brief this function is called when this Kernel driver is destroyed with rmmode
 */
-void __exit etx_driver_exit(void)
+void __exit my_driver_exit(void)
 {
-    device_destroy(dev_class,dev);
-    class_destroy(dev_class);
-    cdev_del(&etx_cdev);
+    device_destroy(LOC_my_dev_class,dev);
+    class_destroy(LOC_my_dev_class);
+    cdev_del(&LOC_my_cdev);
     unregister_chrdev_region(dev, 1);
     release_netfilter();
+
+    LOC_bAlreadyOpened= false;
+
     printk(KERN_INFO "Device Driver Remove...Done!!!\n");
 }
  
-module_init(etx_driver_init);
-module_exit(etx_driver_exit);
+module_init(my_driver_init);
+module_exit(my_driver_exit);
  
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Antoine Monmarché <antoine.monmarche@yahoo.fr>");

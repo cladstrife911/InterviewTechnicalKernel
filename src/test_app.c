@@ -7,6 +7,8 @@
 *       ping localhost
 *    or 
 *       ping www.google.com
+*
+* run the application in sudo
 */
 
 
@@ -21,6 +23,8 @@
 #define WR_VALUE _IOW('a','a',int32_t*)
 #define RD_VALUE _IOR('a','b',int32_t*)
 
+#define DEVICE_NAME "my_device"
+
 int main()
 {
         int fd;
@@ -28,7 +32,7 @@ int main()
 
         printf("*********************************\n");
 	printf("\nOpening Driver\n");
-        fd = open("/dev/etx_device", O_RDWR);
+        fd = open("/dev/"DEVICE_NAME, O_RDWR);
         if(fd < 0) {
                 printf("Cannot open device file...\n");
                 return 0;
