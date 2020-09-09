@@ -16,7 +16,7 @@ From another terminal window, run a ping request (CMP) either:
 or
 	'ping www.google.com'
 
-From src folder, build and run the test application with:
+From test folder, build and run the test application with:
 'sudo ./src/test_app'
 
 #Environment

@@ -64,8 +64,12 @@ static unsigned int hfunc(void *priv, struct sk_buff *skb, const struct nf_hook_
 	iph = ip_hdr(skb);
 	if (iph->protocol == IPPROTO_ICMP) {
     		icmph = icmp_hdr(skb);
-            /* Just increment the icmp counter that will be send through ioctl*/
-    		LOC_icmp_counter++;
+            /* Only start counting when a user application is connected*/
+            if(LOC_bAlreadyOpened){
+    		    LOC_icmp_counter++; 
+            }else{
+                LOC_icmp_counter=0;
+            }
     		printk(KERN_INFO "ICMP packet intercepted: %d!!\n", LOC_icmp_counter);
 	}
 	return NF_ACCEPT;
