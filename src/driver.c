@@ -101,6 +101,7 @@ static int my_open(struct inode *inode, struct file *file)
         LOC_bAlreadyOpened = true;
         return 0;
     }else{
+        printk(KERN_INFO "Device File failed to open because another user is already connected!!!\n");
         return -1;
     }
 }
